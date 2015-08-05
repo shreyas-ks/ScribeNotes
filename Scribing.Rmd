@@ -1,0 +1,133 @@
+---
+title: "Module 8.2"
+output: html_document
+---
+
+## Clustering on R
+#### Shreyas K.S., Reshma Sekhar, Landon Chambers
+
+Module 7 and Module 8.1 covered the theoretical elements of clustering. In this walk-through, you will get introduced to run K-means and hierarchical clustering on R. The following data sets will be required:
+
+- [Cars]('cars.csv)
+- [Protein]('protein.csv')
+
+This tutorial is 'hit enter' reproducible. Downloading the Rmd file and knitting HTML/PDF/Word output will produce a comprehensive tutorial with worked out examples.
+
+### K-means clustering
+
+#### Cars
+We start off by reading in the data set and cleaning the data. The first step in cleaning data is removing variables we deem unnecessary. The first 9 rows contain dummy variables for type or category of cars (Sports, SUV,Wagon...). These are not necessary in the data frame since the aim of the clustering experiment is to see if the algorithm is able to sort cars into categories. The retail and dealer prices are also removed since they do not contribute towards the clustering exercise. The next step is scaling. Scaling helps put the relative effect of each variable in perspective. For example, it would not make sense to compare a 6 cylinder engine to a weight of 4000 lbs in absolute terms. Scaling helps to convert these variables to a standard normal distribution.
+```{r}
+require(ggplot2)
+cars = read.csv('cars.csv', header=TRUE)
+X = cars[,-(1:9)]
+X = scale(X, center=TRUE, scale=TRUE)
+```
+Lets assume a specific value in the data is $x_i$. When scaling, we apply the following formula:
+$$ \frac{x_i - \mu}{\sigma} $$
+R stores $\mu$ and $\sigma$ as 'attributes'. We retreive these values and assign them their respective names:
+```{R}
+mu = attr(X,"scaled:center")
+sigma = attr(X,"scaled:scale")
+```
+Next, we create clusters with 6 means, and 500 possible different tries:
+```{R}
+clust1 = kmeans(X, 6, nstart=500)
+```
+To view the centers of a cluster in the variable space, we apply $\mu$ and $\sigma$ back to the derived cluster centers.
+```{r}
+clust1$center[1,]*sigma + mu
+clust1$center[2,]*sigma + mu
+```
+We can also look at the cars in each cluster:
+```{r, eval=FALSE}
+which(clust1$cluster == 1)
+which(clust1$cluster == 2)
+which(clust1$cluster == 3)
+which(clust1$cluster == 4)
+which(clust1$cluster == 5)
+```
+The following plots show various cluster membership:
+```{r}
+qplot(Weight, Length, data=cars, color=factor(clust1$cluster))
+qplot(Horsepower, CityMPG, data=cars, color=factor(clust1$cluster))
+```
+
+### Protein
+Similar to the cars example, we start by loading and scaling the data.
+```{r}
+protein <- read.csv("protein.csv", row.names=1)
+protein_scaled <- scale(protein, center=TRUE, scale=TRUE) 
+```
+Next, we run a simple cluster with 3 means (denoted by `centers = 3`) with red and white meat on the axes. This combination of variables is chosen because they can easily be compared on a 2-dimensional axis, but this can be done with any combination of variables from the data. 
+```{r}
+cluster_redwhite <- kmeans(protein_scaled[,c("WhiteMeat","RedMeat")], centers=3)
+plot(protein_scaled[,"RedMeat"], protein_scaled[,"WhiteMeat"], xlim=c(-2,2.75), 
+    type="n", xlab="Red Meat", ylab="White Meat")  
+text(protein_scaled[,"RedMeat"], protein_scaled[,"WhiteMeat"], labels=rownames(protein), 
+    col=rainbow(3)[cluster_redwhite$cluster])
+```
+We change the number of centers to 7 and see the names of attributes of the cluster, cluster means in each dimension, and which cluster each row (or country) belongs to:
+```{r}
+cluster_all <- kmeans(protein_scaled, centers=7, nstart=50)
+names(cluster_all)
+cluster_all$centers
+cluster_all$cluster
+```
+Finally, we plot these points, colored by the 7 respective clusters:
+```{r}
+plot(protein_scaled[,"RedMeat"], protein_scaled[,"WhiteMeat"], xlim=c(-2,2.75), 
+    type="n", xlab="Red Meat", ylab="White Meat")
+text(protein_scaled[,"RedMeat"], protein_scaled[,"WhiteMeat"], labels=rownames(protein), 
+    col=rainbow(7)[cluster_all$cluster]) 
+```
+
+
+## Hierarchical Clustering
+
+### Protein
+We continue with the protein data for hierarchical clustering, the return to cars to repeat the same exercise. First, we need to create a pairwise distance matrix using the `dist` function on R:
+```{r}
+protein_distance_matrix = dist(protein_scaled, method='euclidean')
+```
+We then run hierarchical clustering and plot the dendrogram (aka tree). As noted in module 8.1, there is no need to specify 'K' $a priori$. The method 'complete' means we use average distance between clusters.
+```{r}
+hier_protein = hclust(protein_distance_matrix, method='complete')
+plot(hier_protein, cex=0.8)
+```
+We split the tree into 5 distinct clusters and see how many countries there are in each of the 5 clusters:
+```{r}
+cluster1 = cutree(hier_protein, k=5)
+summary(factor(cluster1))
+```
+We can also view the members of each cluster:
+```{r}
+which(cluster1 == 1)
+which(cluster1 == 2)
+which(cluster1 == 3)
+```
+
+We repeat the whole exercise with 'single' linkage, or the minimum distance measure:
+```{r}
+hier_protein2 = hclust(protein_distance_matrix, method='single')
+plot(hier_protein2, cex=0.8)
+cluster2 = cutree(hier_protein2, k=5)
+summary(factor(cluster2))
+```
+We clearly observe tht the clusters are more one sided from the dendrogram and the number of elements in each cluster. 
+
+### Cars
+We repeat a similar exercise with the cars data. We start by calculating the distance matrix: 
+```{r}
+distance_between_cars = dist(X)
+```
+Next, we run hierarchical clustering using average distance and 10 clusters:
+```{r}
+h1 = hclust(distance_between_cars, method='complete')
+cluster1 = cutree(h1, k=10)
+summary(factor(cluster1))
+```
+Finally, we plot the dendrogram to visualize the results:
+```{r}
+plot(h1, cex=0.3)
+```
