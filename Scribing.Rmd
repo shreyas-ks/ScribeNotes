@@ -40,7 +40,7 @@ clust1$center[1,]*sigma + mu
 clust1$center[2,]*sigma + mu
 ```
 We can also look at the cars in each cluster:
-```{r, eval=FALSE}
+```{r}
 which(clust1$cluster == 1)
 which(clust1$cluster == 2)
 which(clust1$cluster == 3)
