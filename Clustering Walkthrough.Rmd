@@ -8,8 +8,8 @@ output: html_document
 
 Module 7 and Module 8.1 covered the theoretical elements of clustering. In this walk-through, you will get introduced to run K-means and hierarchical clustering on R. The following data sets will be required:
 
-- [Cars]('cars.csv)
-- [Protein]('protein.csv')
+- [Cars]('../cars.csv)
+- [Protein]('../protein.csv')
 
 This tutorial is 'hit enter' reproducible. Downloading the Rmd file and knitting HTML/PDF/Word output will produce a comprehensive tutorial with worked out examples.
 
