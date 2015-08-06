@@ -114,7 +114,7 @@ plot(hier_protein2, cex=0.8)
 cluster2 = cutree(hier_protein2, k=5)
 summary(factor(cluster2))
 ```
-We clearly observe tht the clusters are more one sided from the dendrogram and the number of elements in each cluster. 
+We clearly observe that the clusters are more one sided from the dendrogram and the number of elements in each cluster. 
 
 ### Cars
 We repeat a similar exercise with the cars data. We start by calculating the distance matrix: 
